@@ -78,7 +78,7 @@ module DICOM
         @org_root = "555" # Register for one at http://www.medicalconnections.co.uk/FreeUID.html
       end
       # Set sqlite database file if it exists
-      @db = options[:db]
+      @audit = options[:db] ? AuditTrail.new : nil
       # Set limited vocabulary dictionary
       @vocab = options[:vocab]
       # Set the default data elements to be anonymized:
@@ -162,7 +162,6 @@ module DICOM
       load_files
       add_msg("Done.")
       delete_burn_in = false
-      initialize_db if @db
       if @files.length > 0
         if @tags.length > 0
           add_msg(@files.length.to_s + " files have been identified in the specified folder(s).")
@@ -291,12 +290,13 @@ module DICOM
           else
             add_msg("Some DICOM objects were NOT succesfully written to file. You are advised to have a closer look (#{files_written} files succesfully written).")
             if delete_burn_in
-              add_msg( "At least some of these dicom files have been identified as possibly containing burnt-in patient data.")
+              add_msg("At least some of these dicom files have been identified as possibly containing burnt-in patient data.")
               add_msg("They have been moved to directory call suspect_dicom_files in your current working directory.")
             end
           end
           # Has user requested enumeration and specified an identity file in which to store the anonymized values?
-          if @enumeration and @identity_file and not @db
+          @audit.serialize if !!audit
+          if @enumeration and @identity_file and !@audit
             add_msg("Writing identity file.")
             write_identity_file
             add_msg("Done")
@@ -321,15 +321,15 @@ module DICOM
       studyUID = nil
       seriesUID = nil
       old_value = element.value
-      if @db
-        db_value = check_db(value, old_value)
+      if !!@audit
+        db_value = @audit.get_clean_tag(value, old_value)
         if db_value != nil
           studyUID = db_value
         else
           studyUID = generate_uid
-          store_db(value, old_value, studyUID, studyDate)
+          @audit.add_tag_record(value, old_value, studyUID, studyDate)
         end
-      else                  
+      else
         previous_old_study = @enum_old_hash["0020,000D"]
         previous_new_study = @enum_new_hash["0020,000D"]
         studyUID = nil
@@ -375,9 +375,9 @@ module DICOM
          mediaSOPUIDElement.value = instanceUID
       end
     end
+    
     # Prints to screen a list of which tags are currently selected for anonymization along with
     # the replacement values that will be used and enumeration status.
-    #
     def print
       # Extract the string lengths which are needed to make the formatting nice:
       names = Array.new
@@ -608,12 +608,12 @@ module DICOM
     def get_enumeration_value(current, j)
       # Is enumeration requested for this tag?
       if @enumerations[j]
-        if @db
-          new_value = check_db(@values[j],current)
+        if @audit
+          new_value = @audit.get_clean_tag(@values[j],current)
           if new_value != nil
             value = new_value
           else
-            index = get_next_db_index(@values[j])
+            index = @audit.previous_values(@values[j])
             # This should really check to see if the type of the tag is an int, but for now, the only 
             # one this is a proble for is assession so
             if @tags[j] == "0008,0050"
@@ -621,7 +621,7 @@ module DICOM
             else
                 value = @values[j] + index.to_s
             end
-            store_db(@values[j], current, value)
+            @audit.add_tag_record(@values[j], current, value)
           end
         else
            # Retrieve earlier used anonymization values:
@@ -867,64 +867,6 @@ module DICOM
       @last_guid = new_guid
       return new_guid
     end
-    
-    # To make this anonymizer work for files anonymized during different runs and stored in the same PACS
-    # this function stores the enumerated identity information in an sqlite database. This allows for consistancy
-    # in generating aliases as well as providing an easy way to link back to the studies that were anonymized.
-    def initialize_db
-      db = SQLite3::Database.open("identity.db")
-      # There needs to be a table to store each of the enumerated values, check to see if the tables exist, if not, create them
-      tables = @values.select {|x| @enumerations[@values.index(x)]}
-      tables.map!{|x| x.downcase}
-      tables.each { |x|
-        rows = db.execute("SELECT name FROM sqlite_master WHERE name='"+x+"'")
-        if rows.length == 0
-          # Table does not exist, create it
-          if x == "studyuid"
-            db.execute("CREATE TABLE "+x+" (id INTEGER PRIMARY KEY AUTOINCREMENT, original, cleaned, date)")
-          else
-            db.execute("CREATE TABLE "+x+" (id INTEGER PRIMARY KEY AUTOINCREMENT, original, cleaned)")
-          end
-        end
-      }
-      db.close
-      
-    end
-    
-    def check_db(tag, value)
-      new_value = nil
-      db = SQLite3::Database.open("identity.db")
-      rows = db.execute("SELECT cleaned FROM "+tag.downcase+" WHERE original = ?", value)
-      if rows.length != 0
-        new_value = rows[0][0]
-      end
-      db.close
-      return new_value
-    end
-    
-    def store_db(tag, old_value, new_value, date = nil)
-      db = SQLite3::Database.open("identity.db")
-      if tag.downcase == "studyuid" and not date.nil?
-        db.execute("INSERT INTO "+tag.downcase+" (original, cleaned,date) VALUES (?,?,?)", old_value, new_value, date)
-      else
-        db.execute("INSERT INTO "+tag.downcase+" (original, cleaned) VALUES (?,?)", old_value, new_value)
-      end
-      
-      db.close
-    end
-    
-    def get_next_db_index(tag)
-      index = nil
-      db = SQLite3::Database.open("identity.db")
-      rows = db.execute("SELECT max(id) FROM "+tag.downcase)
-      if rows[0][0].nil?
-        index = 1
-      else
-        index = rows[0][0].to_i + 1
-      end
-      db.close
-      return index
-    end
-    
+
   end
 end
