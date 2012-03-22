@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/env ruby
 require 'dicom'
 require 'optparse'
 require 'yaml'

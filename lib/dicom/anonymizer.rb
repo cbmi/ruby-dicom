@@ -1,8 +1,8 @@
 #    Copyright 2008-2011 Christoffer Lervag
 require 'rubygems'
-require 'sqlite3'
 require 'progressbar'
 require 'fileutils'
+
 module DICOM
 
   # This is a convenience class for handling anonymization of DICOM files.
@@ -295,7 +295,7 @@ module DICOM
             end
           end
           # Has user requested enumeration and specified an identity file in which to store the anonymized values?
-          @audit.serialize if !!audit
+          @audit.serialize if !!@audit
           if @enumeration and @identity_file and !@audit
             add_msg("Writing identity file.")
             write_identity_file
