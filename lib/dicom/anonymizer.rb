@@ -78,7 +78,7 @@ module DICOM
         @org_root = "555" # Register for one at http://www.medicalconnections.co.uk/FreeUID.html
       end
       # Set sqlite database file if it exists
-      @audit = options[:db] ? AuditTrail.new : nil
+      @audit = options[:at] ? AuditTrail.new : nil
       # Set limited vocabulary dictionary
       @vocab = options[:vocab]
       # Set the default data elements to be anonymized:
