@@ -1,7 +1,7 @@
 #!/usr/bin/ruby
 require 'dicom'
 require 'optparse'
-require 'yaml'
+require 'json'
 
 options = {}
  
@@ -29,8 +29,8 @@ optparse = OptionParser.new do|opts|
   end
 
   options[:vocab] = false
-  opts.on('-v','--vocab FILE', 'Limited vocab file. YAML dictionary format, dicomattr->[List of allowed values].') do |vocab|
-    options[:vocab] = File.open(vocab){ |yf| YAML::load(yf)}
+  opts.on('-v','--vocab FILE', 'Limited vocab file. JSON formated dictionary of {dicomattr:[List of allowed values]}.') do |file_name|
+    options[:vocab] = JSON.load(File.new(file_name, "r"))
   end
   
   # This displays the help screen, all programs are
