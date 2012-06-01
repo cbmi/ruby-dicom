@@ -81,6 +81,8 @@ module DICOM
       @db = options[:db]
       # Set limited vocabulary dictionary
       @vocab = options[:vocab]
+      # Directory to place suspicious DICOM
+      @quarantine_dir = options[:quarantine]
       # Set the default data elements to be anonymized:
       set_defaults
     end
@@ -197,8 +199,12 @@ module DICOM
                   # This file was marked as suspicious, move it
                   all_write = false
                   delete_burn_in = true
-                  pwd = Dir.pwd
-                  susp_dir =  pwd + File::SEPARATOR + "suspicious_dicom_files" + File::SEPARATOR
+                  if @quarantine_dir.length != 0
+                    susp_dir = @quarantine_dir + File::SEPARATOR 
+                  else
+                    pwd = Dir.pwd
+                    susp_dir = Dir.pwd + File::SEPARATOR + "quarantine" + File::SEPARATOR
+                  end
                   str_arr = susp_dir.split(File::SEPARATOR)
                   last_match_index = common_path(str_arr, 0)
                   if last_match_index >= 0

@@ -33,6 +33,11 @@ optparse = OptionParser.new do|opts|
     options[:vocab] = JSON.load(File.new(file_name, "r"))
   end
   
+  options[:quarantine] = ""
+  opts.on('-q','--quarantine DIRECTORY', 'Directory to place files that cannot be anonymized (patient protocol for now). Defaults to "quarantine" in current directory.') do |dir_name|
+    options[:quarantine] = dir_name
+  end
+  
   # This displays the help screen, all programs are
   # assumed to have this option.
   opts.on( '-h', '--help', 'Display this screen' ) do
