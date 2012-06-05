@@ -81,7 +81,14 @@ module DICOM
       @db = options[:db]
       # Set limited vocabulary dictionary
       @vocab = options[:vocab]
-      # Directory to place suspicious DICOM
+      # Make sure vocab is clean and uppercased
+      vocab_keys = @vocab.keys()
+      vocab_keys.each do |attr|
+        @vocab[attr].each do |index|
+          @vocab[attr][index] = @vocab[attr][index].strip.upcase
+        end
+      end
+       # Directory to place suspicious DICOM
       @quarantine_dir = options[:quarantine]
       # Set the default data elements to be anonymized:
       set_defaults
@@ -258,7 +265,10 @@ module DICOM
                 vocab_keys.each do |attr|
                     if obj.exists?(attr.upcase) and not obj[attr.upcase].value.nil?
                         element = obj[attr.upcase]
-                        element.value = "" unless @vocab[attr].include?(element.value.strip)
+                        if not @vocab[attr].include?(element.value.strip.upcase)
+                          add_msg(element + " not in limited vocabulary for " +attr+ ", it will be removed.")
+                          element.value = ""
+                        end
                     end
                 end
               end
