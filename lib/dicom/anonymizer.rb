@@ -266,7 +266,7 @@ module DICOM
                     if obj.exists?(attr.upcase) and not obj[attr.upcase].value.nil?
                         element = obj[attr.upcase]
                         if not @vocab[attr].include?(element.value.strip.upcase)
-                          add_msg(element + " not in limited vocabulary for " +attr+ ", it will be removed.")
+                          add_msg(element.value + " not in limited vocabulary for " +attr+ ", it will be removed.")
                           element.value = ""
                         end
                     end
