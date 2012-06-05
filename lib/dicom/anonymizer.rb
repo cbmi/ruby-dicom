@@ -83,9 +83,9 @@ module DICOM
       @vocab = options[:vocab]
       # Make sure vocab is clean and uppercased
       vocab_keys = @vocab.keys()
-      vocab_keys.each do |attr|
-        @vocab[attr].each do |index|
-          @vocab[attr][index] = @vocab[attr][index].strip.upcase
+      vocab_keys.each do |attrib|
+        @vocab[attrib].each_index do |index|
+          @vocab[attrib][index] = @vocab[attrib][index].strip.upcase
         end
       end
        # Directory to place suspicious DICOM
