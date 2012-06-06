@@ -496,13 +496,13 @@ module DICOM
        #   add_msg("File: " + filename + " has series description that includes the word '3d'. It will be moved for manual review.")
        #end
 
-       studyDescripElement = obj["0008,1030"]
-       studyDescrip = nil
-       studyDescrip = studyDescripElement.value if studyDescripElement
-       if not studyDescrip.nil? and (studyDescrip.upcase.strip.include?("3D") or studyDescrip.upcase.strip.include?("3-D"))
-         suspect = true
-         add_msg("File: " + filename + " has study description that contains the text '3d'. It will be moved for manual review.")
-       end
+       #studyDescripElement = obj["0008,1030"]
+       #studyDescrip = nil
+       #studyDescrip = studyDescripElement.value if studyDescripElement
+       #if not studyDescrip.nil? and (studyDescrip.upcase.strip.include?("3D") or studyDescrip.upcase.strip.include?("3-D"))
+       #  suspect = true
+       #  add_msg("File: " + filename + " has study description that contains the text '3d'. It will be moved for manual review.")
+       #end
 
        return suspect
     end
