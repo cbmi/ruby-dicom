@@ -199,7 +199,13 @@ module DICOM
           @files.each_index do |i|
             pbar.inc
             # Read existing file to DICOM object:
-            obj = DICOM::DObject.new(@files[i], :verbose => verbose)
+            obj = nil
+            begin
+               obj = DICOM::DObject.new(@files[i], :verbose => verbose)
+            rescue
+               add_msg("Error opening " + @files[i] + ". Skipping.")
+               next
+            end
             if obj.read_success
               # This function should return true if this file should be considered for manual review
               if suspicious(obj, @files[i])
@@ -207,7 +213,7 @@ module DICOM
                   all_write = false
                   delete_burn_in = true
                   if @quarantine_dir.length != 0
-                    susp_dir = @quarantine_dir + File::SEPARATOR 
+                    susp_dir = @quarantine_dir + File::SEPARATOR
                   else
                     pwd = Dir.pwd
                     susp_dir = Dir.pwd + File::SEPARATOR + "quarantine" + File::SEPARATOR
