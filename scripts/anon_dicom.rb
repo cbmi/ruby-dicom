@@ -38,13 +38,18 @@ optparse = OptionParser.new do|opts|
     options[:quarantine] = dir_name
   end
   
+  options[:modalities] = nil
+  opts.on('-m', '--modalities ALLOWED_MODALITIES', 'Comma separated list of allowed modalities.') do |m|
+    options[:modalities] = m.strip.split(",") 
+  end 
+  
   # This displays the help screen, all programs are
   # assumed to have this option.
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
     exit
   end
-  
+
 end
 
 optparse.parse!

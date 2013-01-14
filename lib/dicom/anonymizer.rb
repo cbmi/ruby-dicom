@@ -88,8 +88,13 @@ module DICOM
           @vocab[attrib][index] = @vocab[attrib][index].strip.upcase
         end
       end
-       # Directory to place suspicious DICOM
+      # Directory to place suspicious DICOM
       @quarantine_dir = options[:quarantine]
+      # Set the allowed modalities 
+      @allowed_modalities = options[:modalities]
+      # todo upcase modalities
+      @allowed_modalities = @allowed_modalities.map {|x| x.strip.upcase }
+
       # Set the default data elements to be anonymized:
       set_defaults
     end
@@ -509,6 +514,23 @@ module DICOM
        #  suspect = true
        #  add_msg("File: " + filename + " has study description that contains the text '3d'. It will be moved for manual review.")
        #end
+       #
+       modality = obj["0008,0060"]
+       if modality.nil? or modality.value.nil?
+           suspect = true
+           add_msg("File: " + filename + " has no modality type. Will be moved for manual review.")
+       elsif not @allowed_modalities.include?(modality.value.upcase.strip)
+           suspect = true
+           add_msg("File: " + filename + " has modality type "+ modality.value +". This is not in the allowed modality list. Will be moved for manual review.")
+       end
+
+       burntin = obj["0028,0301"]
+       if not burntin.nil? and not burntin.value.nil?
+           if burntin.value.strip.upcase == "YES" or burntin.value.strip.upcase == "Y"
+              suspect = true
+              add_msg("File: " + filename + " DICOM attribute 0028,0301 is set to YES indicating burnt-in data. Will be moved for manual review.")
+           end
+       end
 
        return suspect
     end
