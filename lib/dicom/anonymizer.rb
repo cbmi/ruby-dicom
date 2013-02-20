@@ -1,7 +1,7 @@
 #    Copyright 2008-2011 Christoffer Lervag
 require 'rubygems'
 require 'sqlite3'
-require 'progressbar'
+require 'ruby-progressbar'
 require 'fileutils'
 module DICOM
 
@@ -521,7 +521,7 @@ module DICOM
            add_msg("File: " + filename + " has no modality type. Will be moved for manual review.")
        elsif not @allowed_modalities.include?(modality.value.upcase.strip)
            suspect = true
-           add_msg("File: " + filename + " has modality type "+ modality.value +". This is not in the allowed modality list. Will be moved for manual review.")
+           add_msg("File: " + filename + " has modality type " + modality.value + ". This is not in the allowed modality list. Will be moved for manual review.")
        end
 
        burntin = obj["0028,0301"]
