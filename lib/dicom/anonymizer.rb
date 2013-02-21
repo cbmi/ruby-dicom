@@ -1,7 +1,6 @@
 #    Copyright 2008-2011 Christoffer Lervag
 require 'rubygems'
 require 'sqlite3'
-require 'ruby-progressbar'
 require 'fileutils'
 module DICOM
 
@@ -200,9 +199,7 @@ module DICOM
           all_write = true
           files_written = 0
           files_failed_read = 0
-          pbar = ProgressBar.new("Anonymizing", @files.length)
           @files.each_index do |i|
-            pbar.inc
             # Read existing file to DICOM object:
             obj = nil
             begin
@@ -304,7 +301,6 @@ module DICOM
               files_failed_read += 1
             end
           end
-          pbar.finish
           # Finished anonymizing files. Print elapsed time and status of anonymization:
           end_time = Time.now.to_f
           add_msg("Anonymization process completed!")
