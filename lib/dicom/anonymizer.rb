@@ -84,7 +84,7 @@ module DICOM
       vocab_keys = @vocab.keys()
       vocab_keys.each do |attrib|
         @vocab[attrib].each_index do |index|
-          @vocab[attrib][index] = @vocab[attrib][index].strip.upcase
+          @vocab[attrib][index] = @vocab[attrib][index].strip.upcase.split.join(" ")
         end
       end
       # Directory to place suspicious DICOM
@@ -273,7 +273,7 @@ module DICOM
                 vocab_keys.each do |attr|
                     if obj.exists?(attr.upcase) and not obj[attr.upcase].value.nil?
                         element = obj[attr.upcase]
-                        if not @vocab[attr].include?(element.value.strip.upcase)
+                        if not @vocab[attr].include?(element.value.strip.upcase.split.join(" "))
                           add_msg(element.value + " not in limited vocabulary for " +attr+ ", it will be removed.")
                           element.value = ""
                         end
